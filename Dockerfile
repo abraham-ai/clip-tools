@@ -33,6 +33,6 @@ RUN --mount=type=secret,id=BUCKET_URL \
 
 # download models
 RUN ./mc cp eden/models/clip_tools/clip_nsfw_models.zip .
-RUN unzip clip_nsfw_models.zip .
+RUN unzip clip_nsfw_models.zip
 
 ENTRYPOINT ["python", "server.py", "--num-workers", "1", "--port", "5656" "--redis-host", "eden-diffusion-redis", "--redis-port", "6379"]
