@@ -16,10 +16,9 @@ RUN apt-get install -y git wget curl libgl1-mesa-glx libglib2.0-0
 WORKDIR /usr/local/eden
 COPY . .
 
-# requirements for stable-diffusion
+# requirements for clip-tools
 RUN pip install -r requirements.txt
-RUN pip install torch==1.9.0+cu111 torchvision==0.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
-RUN pip install git+https://github.com/abraham-ai/eden.git@20a2ccae9ea7c97588068bd23772bee0a72513e7
+RUN git clone https://github.com/salesforce/BLIP
 
 # setting up client
 RUN wget https://dl.min.io/client/mc/release/linux-amd64/mc
@@ -33,9 +32,7 @@ RUN --mount=type=secret,id=BUCKET_URL \
     ./mc alias set eden $BUCKET_URL $BUCKET_USER $BUCKET_PASSWORD
 
 # download models
-#RUN ./mc cp eden/models/eden_diffusion/f16-33k+12k-hr_pruned.ckpt .
-#RUN ./mc cp eden/models/eden_diffusion/v1pp-flatline-pruned.ckpt .
-RUN ./mc cp eden/models/eden_diffusion/v1pp-flatlined-hr.ckpt .
-RUN wget -O models/ldm/inpainting_big/last.ckpt https://heibox.uni-heidelberg.de/f/4d9ac7ea40c64582b7c9/?dl=1
+RUN ./mc cp eden/models/clip_tools/clip_nsfw_models.zip .
+RUN unzip clip_nsfw_models.zip .
 
 ENTRYPOINT ["python", "server.py", "--num-workers", "1", "--port", "5656" "--redis-host", "eden-diffusion-redis", "--redis-port", "6379"]
