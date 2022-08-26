@@ -13,6 +13,7 @@ def setup(clip_models_enabled):
     global clip_models
     for clip_model in clip_models_enabled:
         if clip_model not in clip_models:
+            print("SETUP ! ", clip_model)
             model, preprocess = clip.load(clip_model)
             model.cuda().eval()
             clip_models[clip_model] = (model, preprocess)

@@ -1,0 +1,7 @@
+timm
+scikit-learn
+tqdm
+Pillow
+pyMongo
+git+https://github.com/openai/CLIP.git
+git+https://github.com/abraham-ai/eden.git@20a2ccae9ea7c97588068bd23772bee0a72513e7

@@ -12,6 +12,7 @@ from models.blip import blip_decoder
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 blip_image_eval_size = 384
 blip_model = None
+prompts_data_setup = False
 
 def load_list(filename):
     with open(filename, 'r', encoding='utf-8', errors='replace') as f:
@@ -19,23 +20,26 @@ def load_list(filename):
     return items
 
 def get_prompts_data(data_path):
-    global artists, flavors, mediums, movements, sites, trending_list
-    artists = load_list(os.path.join(data_path, 'artists.txt'))
-    flavors = load_list(os.path.join(data_path, 'flavors.txt'))
-    mediums = load_list(os.path.join(data_path, 'mediums.txt'))
-    movements = load_list(os.path.join(data_path, 'movements.txt'))
-    sites = load_list(os.path.join(data_path, 'sites.txt'))
-    trending_list = [site for site in sites]
-    trending_list.extend(["trending on "+site for site in sites])
-    trending_list.extend(["featured on "+site for site in sites])
-    trending_list.extend([site+" contest winner" for site in sites])
+    global artists, flavors, mediums, movements, sites, trending_list, prompts_data_setup
+    if not prompts_data_setup:
+        artists = load_list(os.path.join(data_path, 'artists.txt'))
+        flavors = load_list(os.path.join(data_path, 'flavors.txt'))
+        mediums = load_list(os.path.join(data_path, 'mediums.txt'))
+        movements = load_list(os.path.join(data_path, 'movements.txt'))
+        sites = load_list(os.path.join(data_path, 'sites.txt'))
+        trending_list = [site for site in sites]
+        trending_list.extend(["trending on "+site for site in sites])
+        trending_list.extend(["featured on "+site for site in sites])
+        trending_list.extend([site+" contest winner" for site in sites])
+        prompts_data_setup = True
 
 def setup_blip():
     global blip_model
-    blip_model_url = 'https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model*_base_caption.pth'
-    blip_model = blip_decoder(med_config='BLIP/configs/med_config.json', pretrained=blip_model_url, image_size=blip_image_eval_size, vit='base')
-    blip_model.eval()
-    blip_model = blip_model.to(device)
+    if blip_model is None:
+        blip_model_url = 'https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model*_base_caption.pth'
+        blip_model = blip_decoder(med_config='BLIP/configs/med_config.json', pretrained=blip_model_url, image_size=blip_image_eval_size, vit='base')
+        blip_model.eval()
+        blip_model = blip_model.to(device)
     
 def generate_caption(pil_image):
     global blip_model, blip_image_eval_size
@@ -85,13 +89,14 @@ def interrogate(image, clip_models):
         final_caption = f'{caption}, {medium} {bests[1][0][0]}, {bests[2][0][0]}, {bests[3][0][0]}, {flaves}'
     return final_caption
 
-def main():
-    url = "https://cdnb.artstation.com/p/assets/images/images/032/142/769/large/ignacio-bazan-lazcano-book-4-final.jpg"
-    clip_models_enabled = ['ViT-B/32', 'ViT-B/16', 'RN50']
+def setup_interrogator(clip_models_enabled):
     clip_model.setup(clip_models_enabled)
     setup_blip()
     get_prompts_data('prompt_data')
-    image = clip_model.load_image_path_or_url(url)
+
+def main():
+    setup_interrogator(['ViT-B/32', 'ViT-B/16', 'RN50'])
+    image = clip_model.load_image_path_or_url("https://cdnb.artstation.com/p/assets/images/images/032/142/769/large/ignacio-bazan-lazcano-book-4-final.jpg")
     final_caption = interrogate(image, clip_models_enabled)
     print(final_caption)
 
