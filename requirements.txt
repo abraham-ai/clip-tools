@@ -2,6 +2,7 @@ timm
 scikit-learn
 tqdm
 fairscale
+transformers==4.19.2
 Pillow
 pyMongo
 git+https://github.com/CompVis/taming-transformers.git@master#egg=taming-transformers
